@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+
 import {
   FaSearch,
   FaShoppingBag,
@@ -7,11 +8,14 @@ import {
   FaUser,
 } from "react-icons/fa";
 import { useState } from "react";
-const user = { _id: "ggh", role: "" };
+const user = { _id: "", role: "" };
 const Header = () => {
+  const navigate = useNavigate();
+
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const logoutHandler = () => {
     setIsOpen(false);
+    navigate("/login");
   };
   return (
     <nav className="header">

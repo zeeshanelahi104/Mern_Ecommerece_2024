@@ -26,6 +26,7 @@ const Search = () => {
         <div>
           <h4>Max Price: {maxPrice || ""}</h4>
           <input
+            className="filter-range"
             type="range"
             min={100}
             max={100000}
