@@ -39,9 +39,7 @@ export const deleteCoupon = TryCatch(async (req, res, next) => {
   const { id } = req.params;
   const coupon = await Coupon.findById(id);
   if (!coupon) return next(new ErrorHandler("Invalid Coupon ID", 404));
-
   await coupon.deleteOne();
-
   return res.status(200).json({
     success: true,
     message: `Coupon ${coupon?.code} Deleted Successfully`,

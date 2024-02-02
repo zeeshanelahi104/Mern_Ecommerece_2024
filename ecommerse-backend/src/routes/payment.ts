@@ -16,6 +16,6 @@ app.post("/coupon/new", adminOnly, newCoupon);
 // route - /api/v1/payment/coupon/all
 app.get("/coupon/all", adminOnly, allCoupons);
 // route - /api/v1/payment/coupon/:id
-app.get("/coupon/:id", adminOnly, deleteCoupon);
+app.delete("/coupon/:id", adminOnly, deleteCoupon);
 
 export default app;
