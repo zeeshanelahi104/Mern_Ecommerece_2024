@@ -1,7 +1,14 @@
 import express from "express";
 
 import { adminOnly } from "../middlewares/auth.js";
-import { allOrders, myOrders, newOrder } from "../contollers/order.js";
+import {
+  allOrders,
+  deleteOrder,
+  getSingleOrder,
+  myOrders,
+  newOrder,
+  processOrder,
+} from "../contollers/order.js";
 
 const app = express.Router();
 // route - /api/v1/order/new
@@ -10,5 +17,11 @@ app.post("/new", newOrder);
 app.get("/my", myOrders);
 // route - /api/v1/order/all
 app.get("/all", adminOnly, allOrders);
+// route - /api/v1/order/all
+app
+  .route("/:id")
+  .get(getSingleOrder)
+  .put(adminOnly, processOrder)
+  .delete(adminOnly, deleteOrder);
 
 export default app;

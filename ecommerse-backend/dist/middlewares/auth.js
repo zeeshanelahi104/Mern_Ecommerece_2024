@@ -10,6 +10,6 @@ export const adminOnly = TryCatch(async (req, res, next) => {
     if (!user)
         return next(new ErrorHandler("Your Id is Fake", 401));
     if (user.role !== "admin")
-        return next(new ErrorHandler("You have not access", 401));
+        return next(new ErrorHandler("You have not access", 403));
     next();
 });
