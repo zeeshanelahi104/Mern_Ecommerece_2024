@@ -15,7 +15,7 @@ export const myOrders = TryCatch(async (req, res, next) => {
     orders = await Order.find({ user });
     myCache.set(key, JSON.stringify(orders));
   }
-  await invalidateCache({ product: true, order: true, admin: true });
+  invalidateCache({ product: true, order: true, admin: true });
   return res.status(200).json({
     success: true,
     message: `Total My Orders: ${orders.length}`,
@@ -30,7 +30,7 @@ export const allOrders = TryCatch(async (req, res, next) => {
     orders = await Order.find().populate("user", "name");
     myCache.set(key, JSON.stringify(orders));
   }
-  await invalidateCache({ product: true, order: true, admin: true });
+  invalidateCache({ product: true, order: true, admin: true });
   return res.status(201).json({
     success: true,
     message: `Total Orders: ${orders.length}`,
@@ -47,7 +47,7 @@ export const getSingleOrder = TryCatch(async (req, res, next) => {
     if (!order) return next(new ErrorHandler("Order Not Found", 404));
     myCache.set(key, JSON.stringify(order));
   }
-  await invalidateCache({ product: false, order: true, admin: true });
+  invalidateCache({ product: false, order: true, admin: true });
   return res.status(201).json({
     success: true,
     order,
@@ -87,7 +87,7 @@ export const newOrder = TryCatch(
       orderItems,
     });
     await reduceStock(orderItems);
-    await invalidateCache({
+    invalidateCache({
       product: false,
       order: true,
       admin: true,
@@ -116,7 +116,7 @@ export const processOrder = TryCatch(async (req, res, next) => {
       break;
   }
   await order.save();
-  await invalidateCache({
+  invalidateCache({
     product: false,
     order: true,
     admin: true,
@@ -134,7 +134,7 @@ export const deleteOrder = TryCatch(async (req, res, next) => {
   if (!order) return next(new ErrorHandler("Order Not Found", 404));
 
   await order.deleteOne();
-  await invalidateCache({
+  invalidateCache({
     product: false,
     order: true,
     admin: true,
