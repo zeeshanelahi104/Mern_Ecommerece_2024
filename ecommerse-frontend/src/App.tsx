@@ -1,15 +1,27 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { lazy, Suspense } from "react";
-import Loader from "./components/loader";
+import { onAuthStateChanged } from "firebase/auth";
+import { Suspense, lazy, useEffect } from "react";
+import { Toaster } from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import Header from "./components/header";
+import Loader from "./components/loader";
+import ProtectedRoute from "./components/protected-route";
+import { auth } from "./firebase";
+import { getUser } from "./redux/api/userAPI";
+import { userExist, userNotExist } from "./redux/reducer/userReducer";
+import { RootState } from "./redux/store";
+
 const Home = lazy(() => import("./pages/home"));
 const Search = lazy(() => import("./pages/search"));
 const Cart = lazy(() => import("./pages/cart"));
 const Shipping = lazy(() => import("./pages/shipping"));
+const Login = lazy(() => import("./pages/login"));
 const Orders = lazy(() => import("./pages/orders"));
 const OrderDetails = lazy(() => import("./pages/order-details"));
-const Login = lazy(() => import("./pages/login"));
-/*Importing Admin Routes */
+const NotFound = lazy(() => import("./pages/not-found"));
+const Checkout = lazy(() => import("./pages/checkout"));
+
+// Admin Routes Importing
 const Dashboard = lazy(() => import("./pages/admin/dashboard"));
 const Products = lazy(() => import("./pages/admin/products"));
 const Customers = lazy(() => import("./pages/admin/customers"));
@@ -29,32 +41,59 @@ const TransactionManagement = lazy(
 );
 
 const App = () => {
-  return (
+  const { user, loading } = useSelector(
+    (state: RootState) => state.userReducer
+  );
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const data = await getUser(user.uid);
+        dispatch(userExist(data.user));
+      } else dispatch(userNotExist());
+    });
+  }, []);
+
+  return loading ? (
+    <Loader />
+  ) : (
     <Router>
-      {/* Header*/}
-      <Header />
+      {/* Header */}
+      <Header user={user} />
       <Suspense fallback={<Loader />}>
         <Routes>
-          <Route path="/" element={<Home />}></Route>
-          <Route path="/search" element={<Search />}></Route>
-          <Route path="/cart" element={<Cart />}></Route>
-          {/*Not Logged In User Routes*/}
-          <Route path="/login" element={<Login />}></Route>
-          {/*Logged In User Routes*/}
-          <Route>
-            <Route path="/shipping" element={<Shipping />}></Route>
-            <Route path="/orders" element={<Orders />}></Route>
-            <Route path="/order/:id" element={<OrderDetails />}></Route>
-          </Route>
-          {/*Admin Routes*/}
+          <Route path="/" element={<Home />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/cart" element={<Cart />} />
+          {/* Not logged In Route */}
           <Route
-          // element={
-          //   <ProtectedRoute
-          //     isAuthenticated={true}
-          //     adminRoute={true}
-          //     isAdmin={true}
-          //   />
-          // }
+            path="/login"
+            element={
+              <ProtectedRoute isAuthenticated={user ? false : true}>
+                <Login />
+              </ProtectedRoute>
+            }
+          />
+          {/* Logged In User Routes */}
+          <Route
+            element={<ProtectedRoute isAuthenticated={user ? true : false} />}
+          >
+            <Route path="/shipping" element={<Shipping />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/order/:id" element={<OrderDetails />} />
+            <Route path="/pay" element={<Checkout />} />
+          </Route>
+          {/* Admin Routes */}
+          <Route
+            element={
+              <ProtectedRoute
+                isAuthenticated={true}
+                adminOnly={true}
+                admin={user?.role === "admin" ? true : false}
+              />
+            }
           >
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/product" element={<Products />} />
@@ -79,9 +118,11 @@ const App = () => {
               element={<TransactionManagement />}
             />
           </Route>
-          ;
+
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
+      <Toaster position="bottom-center" />
     </Router>
   );
 };
